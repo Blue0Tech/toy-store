@@ -12,6 +12,10 @@ AFRAME.registerComponent('marker-handler',{
             }
         });
         this.el.addEventListener('markerLost',this.handleMarkerLost);
+        var paymentButton = document.getElementById('pay-button');
+        paymentButton.addEventListener('click',()=>{
+            this.handlePayment();
+        });
     },
     askCurrentUser: function() {
         var iconUrl = "https://img.icons8.com/material-outlined/50/000000/user--v1.png";
@@ -62,6 +66,7 @@ AFRAME.registerComponent('marker-handler',{
             buttonDiv.style.display = 'flex';
             var summaryButton = document.getElementById('summaryButton');
             var orderButton = document.getElementById('orderButton');
+            var orderSummaryButton = document.getElementById('orderSummaryButton');
             summaryButton.addEventListener('click',()=>{
                 swal({
                     icon: 'warning',
@@ -78,6 +83,9 @@ AFRAME.registerComponent('marker-handler',{
                     title: 'Thanks for ordering',
                     text: 'Your order will arrive soon'
                 });
+            });
+            orderSummaryButton.addEventListener('click',()=>{
+                this.handleOrderSummary();
             });
         }
     },
@@ -101,6 +109,49 @@ AFRAME.registerComponent('marker-handler',{
                 };
             };
             data.totalBill += toy.price;
+            firebase.firestore().collection('users').doc(doc.id).update(data);
+        });
+    },
+    getOrderSummary: async function(currentUser) {
+        return await firebase.firestore().collection('users').doc(`U${currentUser}`).get().then((doc)=>{
+            doc.data();
+        });
+    },
+    handleOrderSummary: async function() {
+        var user;
+        currentUser<=9?user='0'+currentUser.toString():user=currentUser.toString();
+        var orderSummary = this.getOrderSummary(user);
+        var modalDiv = document.getElementById('modal-div');
+        modalDiv.style.display = 'flex';
+        var billTableBody = document.getElementById('bill-table-body');
+        billTableBody.innerHTML = '';
+        var currentOrder = Object.keys(orderSummary.currentOrder);
+        currentOrder.map(i=>{
+            var tr = document.createElement('tr');
+            var item = document.createElement('td');
+            var price = document.createElement('td');
+            var quantity = document.createElement('td');
+            var subtotal = document.createElement('td');
+            item.innerHTML = orderSummary.currentOrder[i].item;
+            price.innerHTML = `$${(orderSummary.currentOrder[i].price).toFixed(2)}`;
+            price.setAttribute('class','text-center');
+            quantity.innerHTML = orderSummary.currentOrder[i].quantity;
+            quantity.setAttribute('class','text-center');
+            subtotal.innerHTML = `$${(orderSummary.currentOrder[i].subtotal).toFixed(2)}`;
+            subtotal.setAttribute('class','text-center');
+            tr.appendChild(item);
+            tr.appendChild(price);
+            tr.appendChild(quantity);
+            tr.appendChild(subtotal);
+            billTableBody.appendChild(tr);
+        });
+    },
+    handlePayment: function() {
+        firebase.firestore().collection('users').doc(`U${currentUser}`).get().then((doc)=>{
+            var data = doc.data();
+            data.currentOrder = {};
+            data.id = "";
+            data.totalBill = 0;
             firebase.firestore().collection('users').doc(doc.id).update(data);
         });
     }
