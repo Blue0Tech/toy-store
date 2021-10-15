@@ -113,9 +113,7 @@ AFRAME.registerComponent('marker-handler',{
         });
     },
     getOrderSummary: async function(currentUser) {
-        return await firebase.firestore().collection('users').doc(`U${currentUser}`).get().then((doc)=>{
-            doc.data();
-        });
+        return await firebase.firestore().collection('users').doc(`U${currentUser}`).get().then((doc)=>doc.data());
     },
     handleOrderSummary: async function() {
         var user;
