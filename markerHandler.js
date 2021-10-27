@@ -64,15 +64,18 @@ AFRAME.registerComponent('marker-handler',{
             pricePlane.setAttribute('visible',true);
             var buttonDiv = document.getElementById('button-div');
             buttonDiv.style.display = 'flex';
-            var summaryButton = document.getElementById('summaryButton');
+            var ratingButton = document.getElementById('ratingButton');
             var orderButton = document.getElementById('orderButton');
             var orderSummaryButton = document.getElementById('orderSummaryButton');
-            summaryButton.addEventListener('click',()=>{
-                swal({
-                    icon: 'warning',
-                    title: 'Summary of toy',
-                    text: toy.description
-                });
+            // summaryButton.addEventListener('click',()=>{
+            //     swal({
+            //         icon: 'warning',
+            //         title: 'Summary of toy',
+            //         text: toy.description
+            //     });
+            // });
+            ratingButton.addEventListener('click',()=>{
+                this.handleRating(toy);
             });
             orderButton.addEventListener('click',()=>{
                 var user;
@@ -152,5 +155,45 @@ AFRAME.registerComponent('marker-handler',{
             data.totalBill = 0;
             firebase.firestore().collection('users').doc(doc.id).update(data);
         });
+    },
+    handleRating: async function(toy) {
+        var user;
+        currentUser<=9?user='0'+currentUser.toString():user=currentUser.toString();
+        var orderSummary = await this.getOrderSummary(user);
+        var currentOrder = Object.keys(orderSummary.currentOrder);
+        if(currentOrder.length>0 && currentOrder == toy.id) {
+            document.getElementById('rating-modal-div').style.display = 'flex';
+            document.getElementById('rating-input').value = '0';
+            document.getElementById('feedback-input').value = '';
+            var saveRating = document.getElementById('save-rating-button');
+            saveRating.addEventListener('click',()=>{
+                document.getElementById('rating-modal-div').style.display = 'none';
+                var rating = document.getElementById('rating-input').value;
+                var feedback = document.getElementById('feedback-input').value;
+                var id = parseInt(toy.id.slice(toy.id.length-1,toy.id.length));
+                // var docId = '';
+                // id<=9?docId='0'+id.toString():docId=id.toString();
+                firebase.firestore().collection('toys').doc(`toy${id}`).update({
+                    lastReview: feedback,
+                    lastRating: rating
+                }).then(()=>{
+                    swal({
+                        icon: 'success',
+                        title: 'Thanks for rating!',
+                        text: 'We hope you enjoyed your toy!',
+                        timer: 2500,
+                        buttons: false
+                    });
+                });
+            });
+        } else {
+            swal({
+                icon: 'warning',
+                title: 'Oops',
+                text: 'No toy found to give rating.',
+                timer: 2500,
+                buttons: false
+            });
+        }
     }
 });

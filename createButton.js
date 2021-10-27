@@ -1,8 +1,8 @@
 AFRAME.registerComponent('create-button',{
     init: function() {
         var button1 = document.createElement('button');
-        button1.innerHTML = 'Order summary';
-        button1.setAttribute('id','summaryButton');
+        button1.innerHTML = 'Rate Us';
+        button1.setAttribute('id','ratingButton');
         button1.setAttribute('class','btn btn-warning ml-3 mr-3');
         var button2 = document.createElement('button');
         button2.innerHTML = 'Order Now';
